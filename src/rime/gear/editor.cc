@@ -21,6 +21,7 @@ static Editor::ActionDef editor_action_definitions[] = {
     {"toggle_selection", &Editor::ToggleSelection},
     {"commit_comment", &Editor::CommitComment},
     {"commit_raw_input", &Editor::CommitRawInput},
+    {"commit_raw_input_and_send_space", &Editor::CommitRawInputAndSendSpace},
     {"commit_script_text", &Editor::CommitScriptText},
     {"commit_composition", &Editor::CommitComposition},
     {"revert", &Editor::RevertLastEdit},
@@ -113,6 +114,14 @@ bool Editor::CommitScriptText(Context* ctx) {
 bool Editor::CommitRawInput(Context* ctx) {
   ctx->ClearNonConfirmedComposition();
   ctx->Commit();
+  return true;
+}
+
+// 提交原始输入并发送一个空格
+bool Editor::CommitRawInputAndSendSpace(Context* ctx) {
+  ctx->ClearNonConfirmedComposition();
+  ctx->Commit();
+  engine_->sink()(" ");
   return true;
 }
 
