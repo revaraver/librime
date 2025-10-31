@@ -9,7 +9,7 @@ bin/*
 share/*
 deps/*/*
 plugins/*/
-env.bat
+
 node_modules/
 *~
 .*.swp
