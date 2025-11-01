@@ -205,6 +205,17 @@ if "%build_test%" == "ON" (
 )
 
 echo.
+echo "正在部署 rime.dll..." 
+taskkill /F /IM WeaselServer.exe 
+timeout /t 1 /nobreak >nul 
+copy /Y "%rime_install_prefix%\lib\rime.dll" "C:\Program Files\Rime\weasel-0.17.0\rime.dll" 
+if errorlevel 1 ( 
+  echo "部署失败！" 
+  goto error 
+) 
+echo "部署完成。" 
+ 
+echo. 
 echo ready.
 echo.
 goto exit
