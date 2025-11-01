@@ -22,6 +22,9 @@ static Editor::ActionDef editor_action_definitions[] = {
     {"commit_comment", &Editor::CommitComment},
     {"commit_raw_input", &Editor::CommitRawInput},
     {"commit_raw_input_and_send_space", &Editor::CommitRawInputAndSendSpace},
+    {"commit_raw_input_and_send_enter", &Editor::CommitRawInputAndSendEnter},
+    {"confirm_and_send_enter", &Editor::ConfirmAndSendEnter},
+    {"confirm_and_send_space", &Editor::ConfirmAndSendSpace},
     {"commit_script_text", &Editor::CommitScriptText},
     {"commit_composition", &Editor::CommitComposition},
     {"revert", &Editor::RevertLastEdit},
@@ -121,6 +124,28 @@ bool Editor::CommitRawInput(Context* ctx) {
 bool Editor::CommitRawInputAndSendSpace(Context* ctx) {
   ctx->ClearNonConfirmedComposition();
   ctx->Commit();
+  engine_->sink()(" ");
+  return true;
+}
+
+// 发送原始输入并输入回车
+bool Editor::CommitRawInputAndSendEnter(Context* ctx) {
+  ctx->ClearNonConfirmedComposition();
+  ctx->Commit();
+  engine_->sink()("\n");
+  return true;
+}
+
+// 上屏comfirm后发送回车
+bool Editor::ConfirmAndSendEnter(Context* ctx) {
+  ctx->ConfirmCurrentSelection() || ctx->Commit();
+  engine_->sink()("\n");
+  return true;
+}
+
+// 上屏comfirm后发送空格
+bool Editor::ConfirmAndSendSpace(Context* ctx) {
+  ctx->ConfirmCurrentSelection() || ctx->Commit();
   engine_->sink()(" ");
   return true;
 }
