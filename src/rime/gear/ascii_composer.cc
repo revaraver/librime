@@ -24,6 +24,12 @@ static struct AsciiModeSwitchStyleDefinition {
                                 {"clear", kAsciiModeSwitchClear},
                                 {"set_ascii_mode", kAsciiModeSet},
                                 {"unset_ascii_mode", kAsciiModeUnset},
+                                {"commit_raw_input_and_send_space", kCommitRawInputAndSendSpace},
+                                {"commit_raw_input_and_send_enter", kCommitRawInputAndSendEnter},
+                                {"confirm_and_send_space", kConfirmAndSendSpace},
+                                {"confirm_and_send_enter", kConfirmAndSendEnter},
+                                {"commit_raw_input", kCommitRawInput},
+                                {"confirm", kConfirm},
                                 {NULL, kAsciiModeSwitchNoop}};
 
 static void load_bindings(const an<ConfigMap>& src,
@@ -228,6 +234,49 @@ bool AsciiComposer::ToggleAsciiModeWithKey(int key_code) {
     return false;
   AsciiModeSwitchStyle style = it->second;
   Context* ctx = engine_->context();
+
+  switch (style) {
+    case kCommitRawInputAndSendSpace:
+      if (ctx->IsComposing()) {
+        ctx->ClearNonConfirmedComposition();
+        ctx->Commit();
+        engine_->CommitText(" ");
+      }
+      return true;
+    case kCommitRawInputAndSendEnter:
+      if (ctx->IsComposing()) {
+        ctx->ClearNonConfirmedComposition();
+        ctx->Commit();
+        engine_->CommitText("\n");
+      }
+      return true;
+    case kConfirmAndSendSpace:
+      if (ctx->IsComposing()) {
+        ctx->ConfirmCurrentSelection();
+        engine_->CommitText(" ");
+      }
+      return true;
+    case kConfirmAndSendEnter:
+      if (ctx->IsComposing()) {
+        ctx->ConfirmCurrentSelection();
+        engine_->CommitText("\n");
+      }
+      return true;
+    case kCommitRawInput:
+      if (ctx->IsComposing()) {
+        ctx->ClearNonConfirmedComposition();
+        ctx->Commit();
+      }
+      return true;
+    case kConfirm:
+      if (ctx->IsComposing()) {
+        ctx->ConfirmCurrentSelection();
+      }
+      return true;
+    default:
+      break;
+  }
+
   bool old_mode = ctx->get_option("ascii_mode");
   bool new_mode = (style == kAsciiModeSet)     ? true
                   : (style == kAsciiModeUnset) ? false
