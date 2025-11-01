@@ -45,13 +45,57 @@ static struct EditorCharHandlerDef {
 Editor::Editor(const Ticket& ticket, bool auto_commit)
     : Processor(ticket), KeyBindingProcessor(editor_action_definitions) {
   engine_->context()->set_option("_auto_commit", auto_commit);
+  release_bindings_ = new KeyBindingProcessor<Editor>(editor_action_definitions);
 }
 
+Editor::~Editor() { delete release_bindings_; }
+
 ProcessResult Editor::ProcessKeyEvent(const KeyEvent& key_event) {
-  if (key_event.release())
-    return kRejected;
-  int ch = key_event.keycode();
   Context* ctx = engine_->context();
+  int ch = key_event.keycode();
+
+  // --- 通用修饰键状态跟踪 --- 
+  bool is_modifier = key_event.modifier() == 0 &&
+                     (ch == XK_Shift_L || ch == XK_Shift_R ||
+                      ch == XK_Control_L || ch == XK_Control_R ||
+                      ch == XK_Alt_L || ch == XK_Alt_R ||
+                      ch == XK_Super_L || ch == XK_Super_R);
+
+  if (is_modifier) {
+    if (!key_event.release()) { // 修饰键按下
+      // 如果已有其他修饰键按下，则将其“消耗”掉，不允许触发“修-放”
+      for (auto& p : modifier_state_) {
+        p.second.pressed = false;
+      }
+      modifier_state_[ch].pressed = true;
+      modifier_state_[ch].press_time = std::chrono::steady_clock::now();
+    } else { // 修饰键抬起
+      if (modifier_state_[ch].pressed) {
+        // 状态未被“消耗”，且在500ms内抬起，则触发 release 动作
+        const auto kMaxTapDuration = std::chrono::milliseconds(500);
+        if (std::chrono::steady_clock::now() - modifier_state_[ch].press_time < kMaxTapDuration) {
+          if (ctx->IsComposing()) {
+            return release_bindings_->ProcessKeyEvent(key_event, ctx, 0, FallbackOptions::All);
+          }
+        }
+        modifier_state_[ch].pressed = false;
+      }
+    }
+    return kNoop; // 修饰键事件本身不向下传递
+  } else if (!key_event.release()) {
+    // 非修饰键按下，消耗所有已按下的修饰键状态
+    for (auto& p : modifier_state_) {
+      p.second.pressed = false;
+    }
+  }
+  // --- 状态跟踪结束 ---
+
+  // 对于常规的“按下”事件，以及被判定为“修饰”用途的“抬起”事件，正常处理
+  if (key_event.release()) {
+    return kRejected; // 默认拒绝所有其他抬起事件
+  }
+
+  // key press
   if (ctx->IsComposing()) {
     auto result = KeyBindingProcessor::ProcessKeyEvent(key_event, ctx, 0,
                                                        FallbackOptions::All);
@@ -75,6 +119,10 @@ void Editor::LoadConfig() {
   }
   Config* config = engine_->schema()->config();
   KeyBindingProcessor::LoadConfig(config, "editor");
+  if (config->GetMap("editor/on_release")) {
+    release_bindings_->LoadConfig(config, "editor/on_release");
+  }
+
   if (auto value = config->GetValue("editor/char_handler")) {
     auto* p = editor_char_handler_definitions;
     while (p->action && p->name != value->str()) {

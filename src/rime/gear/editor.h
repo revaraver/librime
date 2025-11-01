@@ -22,7 +22,10 @@ class Editor : public Processor, public KeyBindingProcessor<Editor> {
   typedef ProcessResult CharHandler(Context* ctx, int ch);
   using CharHandlerPtr = ProcessResult (Editor::*)(Context* ctx, int ch);
 
+  using KeyBindingProcessor<Editor>::KeyBindingProcessor;
+
   Editor(const Ticket& ticket, bool auto_commit);
+  ~Editor() override;
   ProcessResult ProcessKeyEvent(const KeyEvent& key_event);
 
   Handler Confirm;
@@ -49,6 +52,15 @@ class Editor : public Processor, public KeyBindingProcessor<Editor> {
   void LoadConfig();
 
   CharHandlerPtr char_handler_ = nullptr;
+
+  KeyBindingProcessor<Editor>* release_bindings_ = nullptr;
+
+  struct ModifierState {
+    bool pressed = false;
+    using TimePoint = std::chrono::steady_clock::time_point;
+    TimePoint press_time;
+  };
+  map<int, ModifierState> modifier_state_;
 };
 
 class FluidEditor : public Editor {
