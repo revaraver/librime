@@ -25,6 +25,12 @@ enum AsciiModeSwitchStyle {
   kAsciiModeSwitchClear,
   kAsciiModeSet,
   kAsciiModeUnset,
+  kCommitRawInputAndSendSpace,
+  kCommitRawInputAndSendEnter,
+  kConfirmAndSendSpace,
+  kConfirmAndSendEnter,
+  kCommitRawInput,
+  kConfirm,
 };
 
 using AsciiModeSwitchKeyBindings = map<int /* keycode */, AsciiModeSwitchStyle>;
