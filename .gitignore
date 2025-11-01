@@ -1,4 +1,10 @@
-build/
+# 忽略 build 目录下的所有内容, 但保留子目录结构以便追踪特定文件
+build/*
+!build/bin
+build/bin/*
+!build/bin/Release
+build/bin/Release/*
+!build/bin/Release/rime.dll
 build-static/
 debug/
 dist/
