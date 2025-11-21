@@ -25,6 +25,8 @@ static Editor::ActionDef editor_action_definitions[] = {
     {"commit_raw_input_and_send_enter", &Editor::CommitRawInputAndSendEnter},
     {"confirm_and_send_enter", &Editor::ConfirmAndSendEnter},
     {"confirm_and_send_space", &Editor::ConfirmAndSendSpace},
+    {"commit_raw_input_and_send_period", &Editor::CommitRawInputAndSendPeriod},
+    {"confirm_and_send_period", &Editor::ConfirmAndSendPeriod},
     {"commit_script_text", &Editor::CommitScriptText},
     {"commit_composition", &Editor::CommitComposition},
     {"revert", &Editor::RevertLastEdit},
@@ -147,6 +149,21 @@ bool Editor::ConfirmAndSendEnter(Context* ctx) {
 bool Editor::ConfirmAndSendSpace(Context* ctx) {
   ctx->ConfirmCurrentSelection() || ctx->Commit();
   engine_->sink()(" ");
+  return true;
+}
+
+// 提交原始输入并发送一个句号
+bool Editor::CommitRawInputAndSendPeriod(Context* ctx) {
+  ctx->ClearNonConfirmedComposition();
+  ctx->Commit();
+  engine_->sink()(".");
+  return true;
+}
+
+// 上屏comfirm后发送句号
+bool Editor::ConfirmAndSendPeriod(Context* ctx) {
+  ctx->ConfirmCurrentSelection() || ctx->Commit();
+  engine_->sink()(".");
   return true;
 }
 
