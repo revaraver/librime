@@ -20,6 +20,7 @@
 #include <rime/gear/matcher.h>
 #include <rime/gear/navigator.h>
 #include <rime/gear/punctuator.h>
+#include <rime/gear/raw_boundary_processor.h>
 #include <rime/gear/recognizer.h>
 #include <rime/gear/reverse_lookup_filter.h>
 #include <rime/gear/reverse_lookup_translator.h>
@@ -51,6 +52,7 @@ static void rime_gears_initialize() {
   r.Register("key_binder", new Component<KeyBinder>);
   r.Register("navigator", new Component<Navigator>);
   r.Register("punctuator", new Component<Punctuator>);
+  r.Register("raw_boundary", new Component<RawBoundaryProcessor>);
   r.Register("recognizer", new Component<Recognizer>);
   r.Register("selector", new Component<Selector>);
   r.Register("speller", new Component<Speller>);
